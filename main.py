@@ -11,13 +11,19 @@ def main(page: ft.Page):
     page.scroll = "adaptive"
 
     # --- ÚTVONAL MEGHATÁROZÁSA ---
-    # Megnézzük, hogy Androidon vagyunk-e (az Android belső tárhelye /storage/emulated/0)
     if os.path.exists("/storage/emulated/0"):
-        default_path = "/storage/emulated/0/XMusic"
+        download_dir = "/storage/emulated/0/Download"
     elif os.path.exists("D:\\"):
-        default_path = "D:\\XMusic"
+        download_dir = "D:\\XMusic"
     else:
-        default_path = "C:\\XMusic"
+        download_dir = "C:\\XMusic"
+
+    # Ha még nem létezik a mappa (PC-n), létrehozzuk
+    if not os.path.exists(download_dir):
+        os.makedirs(download_dir)
+
+    # A yt-dlp-nek átadott pontos mentési sablon
+    default_path = os.path.join(download_dir, "%(title)s.%(ext)s
 
     # --- FUNKCIÓK ---
     
