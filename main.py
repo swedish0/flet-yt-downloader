@@ -4,8 +4,6 @@ import yt_dlp
 import flet as ft
 
 def main(page: ft.Page):
-    # Engedély kérése a zene mentéséhez Androidon
-    page.permission_request(ft.Permission.AUDIO)
     page.title = "YouTube Letöltő"
     page.theme_mode = ft.ThemeMode.DARK  # Modern sötét mód
     page.scroll = "adaptive"
