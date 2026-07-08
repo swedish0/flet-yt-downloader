@@ -1,0 +1,40 @@
+name: Build Android APK
+on:
+  workflow_dispatch: # Így gombnyomásra tudod majd indítani a fordítást
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.7'
+
+      - name: Install Flet and Dependencies
+        run: |
+          pip install "flet[build]" yt-dlp
+
+      - name: Build APK
+        run: |
+          flet build apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/apk/*.apk
