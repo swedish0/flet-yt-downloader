@@ -62,8 +62,17 @@ def main(page: ft.Page):
             'progress_hooks': [hook],
             'nocheckcertificate': True,
             'rm_cachedir': True,
+            # --- BOT ELLENI VÉDELEM KIJÁTSZÁSA ---
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web'], # Trükk: azt hazudjuk, hogy a gyári Android YouTube appból jön a kérés
+                }
+            },
             'headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                # Frissített, teljesen valósághű böngésző azonosító
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7',
             }
         }
 
