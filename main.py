@@ -2,6 +2,9 @@ import os
 import threading
 import yt_dlp
 import flet as ft
+import static_ffmpeg
+# Ez automatikusan hozzáadja az FFmpeg elérési útját a rendszer környezeti változóihoz (PATH)
+static_ffmpeg.add_paths()
 
 def main(page: ft.Page):
     page.title = "YouTube Letöltő"
