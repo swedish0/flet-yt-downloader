@@ -56,23 +56,25 @@ def main(page: ft.Page):
 
         # Úgy állítjuk be, hogy beépített letöltőt használjon, amihez NEM kell FFmpeg
         ydl_opts = {
-            'format': 'bestaudio[ext=m4a]/bestaudio/best',
+            'format': 'bestaudio[ext=m4a]/bestaudio/best', 
             'outtmpl': file_template,
             'noplaylist': not is_playlist,
             'progress_hooks': [hook],
             'nocheckcertificate': True,
             'rm_cachedir': True,
-            # --- BOT ELLENI VÉDELEM KIJÁTSZÁSA ---
+            
+            # --- SAFARI KLINES TRÜKK ---
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['android', 'web'], # Trükk: azt hazudjuk, hogy a gyári Android YouTube appból jön a kérés
+                    'player_client': ['web_safari'], # Safari emuláció kikényszerítése
                 }
             },
             'headers': {
-                # Frissített, teljesen valósághű böngésző azonosító
-                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Language': 'hu-HU,hu;q=0.9,en-US;q=0.8,en;q=0.7',
+                # Valódi, modern macOS alatti Safari böngésző azonosítója
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'hu-HU,hu;q=0.9',
+                'Cache-Control': 'no-cache',
             }
         }
 
