@@ -1,15 +1,11 @@
-import sys
 import os
 import threading
 import yt_dlp
 import flet as ft
-import static_ffmpeg
-static_ffmpeg.add_paths()
-
 
 def main(page: ft.Page):
     page.title = "YouTube Letöltő"
-    page.theme_mode = ft.ThemeMode.DARK  # Modern sötét mód
+    page.theme_mode = ft.ThemeMode.DARK
     page.scroll = "adaptive"
 
     # --- ÚTVONAL MEGHATÁROZÁSA ---
@@ -20,16 +16,13 @@ def main(page: ft.Page):
     else:
         download_dir = "C:\\XMusic"
 
-    # Ha még nem létezik a mappa (PC-n), létrehozzuk
     if not os.path.exists(download_dir):
         try:
-            os.makedirs(download_dir)
+            os.makedirs(download_dir, exist_ok=True)
         except Exception:
             pass
 
     # --- FUNKCIÓK ---
-    
-    # Link törlése funkció
     def clear_link(e):
         url_input.value = ""
         status_text.value = ""
@@ -37,12 +30,10 @@ def main(page: ft.Page):
         progress_text.value = "0%"
         page.update()
 
-    # Letöltő függvény a háttérben
     def download_thread(url, option, output_dir):
         audio_only = option in [1, 2]
         is_playlist = option in [2, 4]
 
-        # Biztonság kedvéért ellenőrizzük a tiszta mappát
         try:
             os.makedirs(output_dir, exist_ok=True)
         except Exception as e:
@@ -51,7 +42,7 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Itt, a háttérben fűzzük hozzá a yt-dlp-nek szükséges fájlnév mintát!
+        # Sablon beállítása
         file_template = os.path.join(output_dir, "%(title)s.%(ext)s")
 
         def hook(d):
@@ -59,22 +50,13 @@ def main(page: ft.Page):
                 downloaded = d.get('downloaded_bytes', 0)
                 total = d.get('total_bytes') or d.get('total_bytes_estimate') or 1
                 percent = downloaded / total
-                
-                # Felület frissítése a letöltés állásával
                 progress_bar.value = percent
                 progress_text.value = f"{int(percent * 100)}%"
                 page.update()
 
-# Megkeressük, hova rakta a static-ffmpeg a binárisokat
-        # A static_ffmpeg belső változójából ki tudjuk nyerni a mappát
-        try:
-            from static_ffmpeg import run
-            ffmpeg_dir = run.get_platform_executable_directory()
-        except Exception:
-            ffmpeg_dir = None
-
+        # Úgy állítjuk be, hogy beépített letöltőt használjon, amihez NEM kell FFmpeg
         ydl_opts = {
-            'format': 'bestaudio/best' if audio_only else 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best',
+            'format': 'b' if audio_only else 'best[ext=mp4]/best', # A legjobb kész formátumot kéri le, amit nem kell összefűzni
             'outtmpl': file_template,
             'noplaylist': not is_playlist,
             'progress_hooks': [hook],
@@ -84,18 +66,6 @@ def main(page: ft.Page):
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             }
         }
-
-        # Ha megtaláltuk az ffmpeg mappáját, fixen átadjuk a yt-dlp-nek
-        if ffmpeg_dir and os.path.exists(ffmpeg_dir):
-            ydl_opts['ffmpeg_location'] = ffmpeg_dir
-
-        
-        if audio_only:
-            ydl_opts['postprocessors'] = [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }]
 
         try:
             status_text.value = "Letöltés folyamatban..."
@@ -129,7 +99,6 @@ def main(page: ft.Page):
         status_text.value = "Indítás..."
         page.update()
 
-        # Átadjuk a tiszta mappát a háttérszálnak
         threading.Thread(
             target=download_thread, 
             args=(url_input.value, int(options_dropdown.value), path_input.value.strip()), 
@@ -137,22 +106,20 @@ def main(page: ft.Page):
         ).start()
 
     # --- GUI ELEMEK ---
-
     url_input = ft.TextField(label="YouTube Link", hint_text="Illeszd be a linket ide...", expand=True)
     clear_btn = ft.IconButton(icon=ft.Icons.CLEAR, on_click=clear_link, tooltip="Mező törlése")
     url_row = ft.Row([url_input, clear_btn], alignment=ft.MainAxisAlignment.CENTER)
 
-    # Most már CSAK a mappa nevét kapja meg, semmi százalékos maszlag!
     path_input = ft.TextField(label="Mentési mappa (módosítható)", value=download_dir)
 
     options_dropdown = ft.Dropdown(
         label="Letöltési mód",
         value="1",
         options=[
-            ft.dropdown.Option("1", "Egy videó MP3-ban"),
-            ft.dropdown.Option("2", "Lejátszási lista MP3-ban"),
-            ft.dropdown.Option("3", "Egy videó MP4-ben"),
-            ft.dropdown.Option("4", "Lejátszási lista MP4-ben"),
+            ft.dropdown.Option("1", "Egy videó Audióként"),
+            ft.dropdown.Option("2", "Lejátszási lista Audióként"),
+            ft.dropdown.Option("3", "Egy videó Videóként (MP4)"),
+            ft.dropdown.Option("4", "Lejátszási lista Videóként (MP4)"),
         ]
     )
 
