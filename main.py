@@ -56,7 +56,7 @@ def main(page: ft.Page):
 
         # Úgy állítjuk be, hogy beépített letöltőt használjon, amihez NEM kell FFmpeg
         ydl_opts = {
-            'format': 'b' if audio_only else 'best[ext=mp4]/best', # A legjobb kész formátumot kéri le, amit nem kell összefűzni
+            'format': 'bestaudio[ext=m4a]/bestaudio/best',
             'outtmpl': file_template,
             'noplaylist': not is_playlist,
             'progress_hooks': [hook],
