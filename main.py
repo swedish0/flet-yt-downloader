@@ -1,11 +1,11 @@
+import sys
 import os
 import threading
 import yt_dlp
 import flet as ft
 import static_ffmpeg
-
-# Ez automatikusan hozzáadja az FFmpeg elérési útját a rendszer környezeti változóihoz (PATH)
 static_ffmpeg.add_paths()
+
 
 def main(page: ft.Page):
     page.title = "YouTube Letöltő"
@@ -65,6 +65,14 @@ def main(page: ft.Page):
                 progress_text.value = f"{int(percent * 100)}%"
                 page.update()
 
+# Megkeressük, hova rakta a static-ffmpeg a binárisokat
+        # A static_ffmpeg belső változójából ki tudjuk nyerni a mappát
+        try:
+            from static_ffmpeg import run
+            ffmpeg_dir = run.get_platform_executable_directory()
+        except Exception:
+            ffmpeg_dir = None
+
         ydl_opts = {
             'format': 'bestaudio/best' if audio_only else 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best',
             'outtmpl': file_template,
@@ -77,6 +85,11 @@ def main(page: ft.Page):
             }
         }
 
+        # Ha megtaláltuk az ffmpeg mappáját, fixen átadjuk a yt-dlp-nek
+        if ffmpeg_dir and os.path.exists(ffmpeg_dir):
+            ydl_opts['ffmpeg_location'] = ffmpeg_dir
+
+        
         if audio_only:
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegExtractAudio',
