@@ -21,7 +21,7 @@ def main(page: ft.Page):
         os.makedirs(download_dir)
 
     # A yt-dlp-nek átadott pontos mentési sablon
-    default_path = os.path.join(download_dir, "%(title)s.%(ext)s
+    default_path = os.path.join(download_dir, "%(title)s.%(ext)s"
 
     # --- FUNKCIÓK ---
     
