@@ -3,6 +3,7 @@ import threading
 import yt_dlp
 import flet as ft
 import static_ffmpeg
+
 # Ez automatikusan hozzáadja az FFmpeg elérési útját a rendszer környezeti változóihoz (PATH)
 static_ffmpeg.add_paths()
 
@@ -21,14 +22,14 @@ def main(page: ft.Page):
 
     # Ha még nem létezik a mappa (PC-n), létrehozzuk
     if not os.path.exists(download_dir):
-        os.makedirs(download_dir)
-
-    # A yt-dlp-nek átadott pontos mentési sablon
-    default_path = os.path.join(download_dir, "%(title)s.%(ext)s")
+        try:
+            os.makedirs(download_dir)
+        except Exception:
+            pass
 
     # --- FUNKCIÓK ---
     
-    # Link törlése funkció (1. kérés)
+    # Link törlése funkció
     def clear_link(e):
         url_input.value = ""
         status_text.value = ""
@@ -37,20 +38,21 @@ def main(page: ft.Page):
         page.update()
 
     # Letöltő függvény a háttérben
-    def download_thread(url, option, output_path):
+    def download_thread(url, option, output_dir):
         audio_only = option in [1, 2]
         is_playlist = option in [2, 4]
 
-        # Létrehozzuk a mappát, ha még nem létezik (2. kérés)
+        # Biztonság kedvéért ellenőrizzük a tiszta mappát
         try:
-            os.makedirs(output_path, exist_ok=True)
+            os.makedirs(output_dir, exist_ok=True)
         except Exception as e:
-            status_text.value = f"Hiba a mappa létrehozásakor: {str(e)}"
+            status_text.value = f"Hiba a mappa ellenőrzésekor: {str(e)}"
             download_btn.disabled = False
             page.update()
             return
 
-        file_template = os.path.join(output_path, "%(title)s.%(ext)s")
+        # Itt, a háttérben fűzzük hozzá a yt-dlp-nek szükséges fájlnév mintát!
+        file_template = os.path.join(output_dir, "%(title)s.%(ext)s")
 
         def hook(d):
             if d['status'] == 'downloading':
@@ -88,7 +90,7 @@ def main(page: ft.Page):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
             
-            status_text.value = f"Sikeres letöltés! Mentve ide:\n{output_path}"
+            status_text.value = f"Sikeres letöltés! Mentve ide:\n{output_dir}"
             progress_bar.value = 1.0
             progress_text.value = "100%"
         except Exception as e:
@@ -114,7 +116,7 @@ def main(page: ft.Page):
         status_text.value = "Indítás..."
         page.update()
 
-        # Szálindítás az egyedi útvonallal (path_input.value)
+        # Átadjuk a tiszta mappát a háttérszálnak
         threading.Thread(
             target=download_thread, 
             args=(url_input.value, int(options_dropdown.value), path_input.value.strip()), 
@@ -123,14 +125,12 @@ def main(page: ft.Page):
 
     # --- GUI ELEMEK ---
 
-    # Link beviteli mező és a Törlés gomb egy sorban (1. kérés)
     url_input = ft.TextField(label="YouTube Link", hint_text="Illeszd be a linket ide...", expand=True)
     clear_btn = ft.IconButton(icon=ft.Icons.CLEAR, on_click=clear_link, tooltip="Mező törlése")
-    
     url_row = ft.Row([url_input, clear_btn], alignment=ft.MainAxisAlignment.CENTER)
 
-    # Szerkeszthető mentési útvonal mező (2. kérés)
-    path_input = ft.TextField(label="Mentési mappa (módosítható)", value=default_path)
+    # Most már CSAK a mappa nevét kapja meg, semmi százalékos maszlag!
+    path_input = ft.TextField(label="Mentési mappa (módosítható)", value=download_dir)
 
     options_dropdown = ft.Dropdown(
         label="Letöltési mód",
@@ -154,7 +154,6 @@ def main(page: ft.Page):
         color=ft.Colors.WHITE
     )
 
-    # Elemek hozzáadása a képernyőhöz
     page.add(
         ft.Container(
             content=ft.Column([
